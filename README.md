@@ -31,7 +31,9 @@ python main.py
 6. Врезался в стену или в собственный хвост → Game Over.
 
 ## Скриншоты
-
+![Меню игры](screenshots/меню.png)
+![Игра](screenshots/игра.png)
+![Окно пройгрыша](screenshots/играокончена.png)
 
 ## Структура проекта
 - `constants.py` — все константы
