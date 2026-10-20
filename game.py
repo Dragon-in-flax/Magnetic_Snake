@@ -14,6 +14,7 @@ from snake import Snake
 from food import Food
 from config_loader import load_settings
 from logger import setup_logger
+from score_manager import save_score, get_top_5
 
 
 class Game:
@@ -116,6 +117,10 @@ class Game:
             self.best_score = max(self.best_score, self.score)
             # ЛОГГЕР: Записываем столкновение
             self.logger.info(f"ИГРА ОКОНЧЕНА! Столкновение. Итоговый счет: {self.score}")
+            # Сохраняет в CSV!
+            if self.score > 0: # Сохраняет только если есть очки
+                save_score("Игрок", self.score)
+                
             self.state = STATE_GAME_OVER
 
     # ОТРИСОВКА
@@ -187,6 +192,20 @@ class Game:
         for i, line in enumerate(lines):
             s = self.font.render(line, True, COLORS["text"])
             self.screen.blit(s, s.get_rect(center=(WINDOW_WIDTH // 2, 300 + i * 28)))
+
+        # ТОП-5 игроков
+        top_title = self.font.render("ТОП-5 РЕКОРДОВ:", True, COLORS["accent"])
+        self.screen.blit(top_title, top_title.get_rect(center=(WINDOW_WIDTH // 2, 475)))
+        
+        top5 = get_top_5()
+        if not top5:
+            empty = self.font.render("Пока нет результатов", True, COLORS["text_dim"])
+            self.screen.blit(empty, empty.get_rect(center=(WINDOW_WIDTH // 2, 500)))
+        else:
+            for i, (name, sc) in enumerate(top5):
+                text = f"{i+1}. {name} — {sc} очков"
+                s = self.font.render(text, True, COLORS["text"])
+                self.screen.blit(s, s.get_rect(center=(WINDOW_WIDTH // 2, 500 + i * 22)))
 
     def _draw_game_over(self):
         overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
