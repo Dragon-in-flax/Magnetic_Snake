@@ -12,6 +12,8 @@ from constants import (
 )
 from snake import Snake
 from food import Food
+from config_loader import load_settings
+from logger import setup_logger
 
 
 class Game:
@@ -34,9 +36,14 @@ class Game:
         self.snake = None
         self.food = None
 
+        self.settings = load_settings()     # Загружаем JSON
+        self.logger = setup_logger()        # Включаем логгер
+        self.logger.info("Игра запущена. Настройки загружены.")
+
     # ЛОГИКА СОСТОЯНИЙ
     def start_game(self):
-        self.snake = Snake(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+        speed = self.settings.get("snake_speed", 3.0)
+        self.snake = Snake(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, speed=speed)
         self.food = self._spawn_food()
         self.score = 0
         self.state = STATE_PLAY
@@ -47,8 +54,13 @@ class Game:
             x = random.randint(margin, WINDOW_WIDTH - margin)
             y = random.randint(margin, WINDOW_HEIGHT - margin)
             if math.hypot(x - self.snake.x, y - self.snake.y) > 100:
-                return Food(x, y)
-        return Food(WINDOW_WIDTH // 2, 100)
+                
+                return Food(x, y,
+                    drift_speed=self.settings.get("food_drift_speed", 1.0),
+                    magnet_radius=self.settings.get("magnet_radius", 150),
+                    magnet_accel=self.settings.get("magnet_accel", 0.6)
+                    )
+        return Food(WINDOW_WIDTH // 2, 100) # fallback
 
     # СОБЫТИЯ
     def handle_events(self):
@@ -70,7 +82,7 @@ class Game:
                         self.state = STATE_MENU
 
     def handle_continuous_input(self):
-        """Обработка зажатых A/D — поворот змейки."""
+        # Обработка зажатых A/D — поворот змейки
         if self.state != STATE_PLAY or not self.snake.alive:
             return
         keys = pygame.key.get_pressed()
@@ -91,6 +103,9 @@ class Game:
         if self.food.check_eaten(self.snake):
             self.score += SCORE_PER_FOOD
             self.snake.grow()
+
+            # ЛОГГЕР: Записывает съедание еды
+            self.logger.info(f"Еда съедена! Очки: {self.score}, Длина: {self.snake.length}")
             self.food = self._spawn_food()
 
         # Столкновение с хвостом
@@ -99,6 +114,8 @@ class Game:
         # Проверка проигрыша
         if not self.snake.alive:
             self.best_score = max(self.best_score, self.score)
+            # ЛОГГЕР: Записываем столкновение
+            self.logger.info(f"ИГРА ОКОНЧЕНА! Столкновение. Итоговый счет: {self.score}")
             self.state = STATE_GAME_OVER
 
     # ОТРИСОВКА
@@ -122,7 +139,7 @@ class Game:
             pygame.draw.line(self.screen, COLORS["grid"], (0, y), (WINDOW_WIDTH, y))
 
     def _draw_magnet_field(self):
-        """Круг радиуса магнетизма вокруг головы (визуальная подсказка)."""
+        # Круг радиуса магнетизма вокруг головы (визуальная подсказка)
         if not (self.snake and self.snake.alive):
             return
         pulse = int(6 * (1 + math.sin(pygame.time.get_ticks() * 0.005)))

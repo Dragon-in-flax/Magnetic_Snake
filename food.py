@@ -12,9 +12,12 @@ from constants import (
 
 
 class Food:
-    def __init__(self, x, y):
+    def __init__(self, x, y, drift_speed = 1.0, magnet_radius = 150, magnet_accel = 0.6):
         self.x = float(x)
         self.y = float(y)
+        self.drift_speed = drift_speed
+        self.magnet_radius = magnet_radius
+        self.magnet_accel = magnet_accel
 
         # Случайное направление свободного дрейфа
         a = random.uniform(0, 2 * math.pi)
@@ -26,7 +29,7 @@ class Food:
 
     def update(self, snake):
         # Дрейф + магнитное притяжение к голове змейки
-        # --- 1. Свободный дрейф с отскоком от стен ---
+        # 1. Свободный дрейф с отскоком от стен
         self.x += self.vx
         self.y += self.vy
 
@@ -37,17 +40,17 @@ class Food:
             self.vy = -self.vy
             self.y = max(self.radius, min(WINDOW_HEIGHT - self.radius, self.y))
 
-        # --- 2. Магнитное притяжение ---
+        # 2. Магнитное притяжение
         dx = snake.x - self.x
         dy = snake.y - self.y
         dist = math.hypot(dx, dy)
 
-        if 0.001 < dist < MAGNET_RADIUS:
+        if 0.001 < dist <  self.magnet_radius:
             self.is_attracted = True
             # Единичный вектор от еды к голове
             nx, ny = dx / dist, dy / dist
             # Чем ближе — тем сильнее (линейный закон)
-            force = MAGNET_ACCEL * (1.0 - dist / MAGNET_RADIUS)
+            force = self.magnet_accel * (1.0 - dist / self.magnet_radius)
             self.vx += nx * force
             self.vy += ny * force
 

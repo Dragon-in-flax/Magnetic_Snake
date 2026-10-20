@@ -1,0 +1,6 @@
+{
+  "snake_speed": 4.0,
+  "magnet_radius": 180,
+  "magnet_accel": 0.8,
+  "food_drift_speed": 1.5
+}

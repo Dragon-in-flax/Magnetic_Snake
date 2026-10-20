@@ -19,11 +19,11 @@ from constants import (
 
 
 class Snake:
-    def __init__(self, x, y):
+    def __init__(self, x, y, speed = 3.0):
         self.x = float(x)
         self.y = float(y)
         self.angle = 0.0                 # 0° — вправо, растёт по часовой
-        self.speed = SNAKE_SPEED
+        self.speed = speed
         self.radius = SNAKE_HEAD_RADIUS
         self.length = SNAKE_START_LENGTH
         self.alive = True
