@@ -37,10 +37,19 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bot\.env" />
+    <Content Include="js_game\js\constants.js" />
+    <Content Include="js_game\js\Food.js" />
+    <Content Include="js_game\js\Game.js" />
+    <Content Include="js_game\js\math_utils.js" />
+    <Content Include="js_game\js\Snake.js" />
+    <Content Include="js_game\package.json" />
+    <Content Include="js_game\selftest.js" />
     <Content Include="snake_settings.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bot\" />
+    <Folder Include="js_game\" />
+    <Folder Include="js_game\js\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
