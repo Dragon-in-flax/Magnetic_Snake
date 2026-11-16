@@ -27,11 +27,11 @@ def get_top_5():
     records = []
     with open(CSV_FILE, mode='r', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=';')
-        next(reader, None) # Пропускаем заголовок
+        next(reader, None) # Пропускает заголовок
         for row in reader:
             if len(row) == 3:
                 records.append((row[0], int(row[1]))) # Имя и очки
                 
-    # Сортируем по очкам (по убыванию) и берем первые 5
+    # Сортирует по очкам (по убыванию) и берем первые 5
     records.sort(key=lambda x: x[1], reverse=True)
     return records[:5]

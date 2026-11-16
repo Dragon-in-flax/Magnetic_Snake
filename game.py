@@ -16,11 +16,12 @@ from config_loader import load_settings
 from logger import setup_logger
 from score_manager import save_score, get_top_5
 
-
 class Game:
     def __init__(self):
         pygame.init()
         pygame.font.init()
+
+        self.player_name = ""  # Тут будет храниться имя, которое вводит игрок
 
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Magnetic Snake — ЛР 1 (вариант 13)")
@@ -47,6 +48,7 @@ class Game:
         self.snake = Snake(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, speed=speed)
         self.food = self._spawn_food()
         self.score = 0
+        self.player_name = ""  # Очищает имя перед новой игрой
         self.state = STATE_PLAY
 
     def _spawn_food(self):
@@ -55,7 +57,6 @@ class Game:
             x = random.randint(margin, WINDOW_WIDTH - margin)
             y = random.randint(margin, WINDOW_HEIGHT - margin)
             if math.hypot(x - self.snake.x, y - self.snake.y) > 100:
-                
                 return Food(x, y,
                     drift_speed=self.settings.get("food_drift_speed", 1.0),
                     magnet_radius=self.settings.get("magnet_radius", 150),
@@ -76,11 +77,20 @@ class Game:
                     elif event.key == pygame.K_ESCAPE:
                         self._quit()
 
+                # Обработка ввода имени на экране Game Over
                 elif self.state == STATE_GAME_OVER:
-                    if event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                        self.start_game()
+                    if event.key == pygame.K_RETURN:
+                        if self.player_name: # Если имя введено, сохраняем его в CSV
+                            save_score(self.player_name, self.score)
+                        self.state = STATE_MENU # В любом случае идем в меню
                     elif event.key == pygame.K_ESCAPE:
-                        self.state = STATE_MENU
+                        self.state = STATE_MENU # Возврат в меню по Escape
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.player_name = self.player_name[:-1] # Удаление последнего символа
+                    else:
+                        # Ограничивает ввод имени 15 символами и только буквами/цифрами
+                        if len(self.player_name) < 15 and event.unicode.isprintable():
+                            self.player_name += event.unicode
 
     def handle_continuous_input(self):
         # Обработка зажатых A/D — поворот змейки
@@ -104,24 +114,18 @@ class Game:
         if self.food.check_eaten(self.snake):
             self.score += SCORE_PER_FOOD
             self.snake.grow()
-
-            # ЛОГГЕР: Записывает съедание еды
             self.logger.info(f"Еда съедена! Очки: {self.score}, Длина: {self.snake.length}")
             self.food = self._spawn_food()
 
         # Столкновение с хвостом
         self.snake.check_self_collision()
 
-        # Проверка проигрыша
+        # Проверка проигрыша (если змейка умерла)
         if not self.snake.alive:
             self.best_score = max(self.best_score, self.score)
-            # ЛОГГЕР: Записываем столкновение
-            self.logger.info(f"ИГРА ОКОНЧЕНА! Столкновение. Итоговый счет: {self.score}")
-            # Сохраняет в CSV!
-            if self.score > 0: # Сохраняет только если есть очки
-                save_score("Игрок", self.score)
-                
-            self.state = STATE_GAME_OVER
+            self.logger.info(f"ИГРА ОКОНЧЕНА! Итоговый счет: {self.score}")
+            # Вот эта строчка переключает экран! Без нее игра зависает.
+            self.state = STATE_GAME_OVER 
 
     # ОТРИСОВКА
     def draw(self):
@@ -144,14 +148,12 @@ class Game:
             pygame.draw.line(self.screen, COLORS["grid"], (0, y), (WINDOW_WIDTH, y))
 
     def _draw_magnet_field(self):
-        # Круг радиуса магнетизма вокруг головы (визуальная подсказка)
         if not (self.snake and self.snake.alive):
             return
         pulse = int(6 * (1 + math.sin(pygame.time.get_ticks() * 0.005)))
         r = MAGNET_RADIUS + pulse
         surf = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
-        pygame.draw.circle(surf, (*COLORS["magnet_field"], 30),
-                           (r, r), r, 2)
+        pygame.draw.circle(surf, (*COLORS["magnet_field"], 30), (r, r), r, 2)
         self.screen.blit(surf, (self.snake.x - r, self.snake.y - r))
 
     def _draw_play(self):
@@ -164,12 +166,10 @@ class Game:
         score_s = self.font.render(f"Очки: {self.score}", True, COLORS["text"])
         self.screen.blit(score_s, (15, 12))
 
-        len_s = self.font.render(f"Длина: {self.snake.length}",
-                                 True, COLORS["text_dim"])
+        len_s = self.font.render(f"Длина: {self.snake.length}", True, COLORS["text_dim"])
         self.screen.blit(len_s, (15, 38))
 
-        hint = self.font.render("A / D — поворот    ESC — выход",
-                                True, COLORS["text_dim"])
+        hint = self.font.render("A / D — поворот    ESC — выход", True, COLORS["text_dim"])
         rect = hint.get_rect()
         rect.topright = (WINDOW_WIDTH - 15, 12)
         self.screen.blit(hint, rect)
@@ -208,23 +208,30 @@ class Game:
                 self.screen.blit(s, s.get_rect(center=(WINDOW_WIDTH // 2, 500 + i * 22)))
 
     def _draw_game_over(self):
+        # Затемняет фон
         overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 170))
         self.screen.blit(overlay, (0, 0))
 
         t = self.big_font.render("ИГРА ОКОНЧЕНА", True, COLORS["game_over"])
-        self.screen.blit(t, t.get_rect(center=(WINDOW_WIDTH // 2, 210)))
+        self.screen.blit(t, t.get_rect(center=(WINDOW_WIDTH // 2, 180)))
 
         s = self.mid_font.render(f"Очки: {self.score}", True, COLORS["text"])
-        self.screen.blit(s, s.get_rect(center=(WINDOW_WIDTH // 2, 290)))
+        self.screen.blit(s, s.get_rect(center=(WINDOW_WIDTH // 2, 250)))
 
-        b = self.font.render(f"Лучший результат: {self.best_score}",
-                             True, COLORS["text_dim"])
-        self.screen.blit(b, b.get_rect(center=(WINDOW_WIDTH // 2, 340)))
+        b = self.font.render(f"Лучший результат: {self.best_score}", True, COLORS["text_dim"])
+        self.screen.blit(b, b.get_rect(center=(WINDOW_WIDTH // 2, 300)))
 
-        h = self.font.render("ENTER — сыграть заново    ESC — в меню",
-                             True, COLORS["text"])
-        self.screen.blit(h, h.get_rect(center=(WINDOW_WIDTH // 2, 420)))
+        # Рисует поле ввода имени
+        name_text = self.mid_font.render(f"Введите имя: {self.player_name}_", True, COLORS["accent"])
+        self.screen.blit(name_text, name_text.get_rect(center=(WINDOW_WIDTH // 2, 380)))
+
+        # Подсказки
+        h = self.font.render("ENTER — сохранить результат", True, COLORS["text"])
+        self.screen.blit(h, h.get_rect(center=(WINDOW_WIDTH // 2, 440)))
+        
+        h2 = self.font.render("ESC — выйти в меню без сохранения", True, COLORS["text_dim"])
+        self.screen.blit(h2, h2.get_rect(center=(WINDOW_WIDTH // 2, 470)))
 
     # СЛУЖЕБНОЕ
     def _quit(self):

@@ -21,6 +21,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="bot\analytics.py" />
+    <Compile Include="bot\config.py" />
+    <Compile Include="bot\keyboards.py" />
+    <Compile Include="bot\main.py" />
+    <Compile Include="bot\session.py" />
     <Compile Include="config_loader.py" />
     <Compile Include="constants.py" />
     <Compile Include="food.py" />
@@ -31,7 +36,11 @@
     <Compile Include="snake.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bot\.env" />
     <Content Include="snake_settings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bot\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
