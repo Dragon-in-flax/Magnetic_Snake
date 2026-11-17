@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Magnetic Snake - Web Widget</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-area">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+        <div class="hud">
+            <h2>Magnetic Snake</h2>
+            <p>Очки: <span id="score">0</span></p>
+            <p>Длина: <span id="length">5</span></p>
+
+            <h3>Сценарии (Кнопки):</h3>
+            <button data-scenario="speedUp">Ускорить змейку</button>
+            <button data-scenario="toggleFog">Вкл/Выкл Туман</button>
+            <button data-scenario="addFood">Добавить еду</button>
+            <button data-scenario="reset">Сбросить игру</button>
+
+            <p class="hint">Управление: <b>Двигайте мышкой по полю</b></p>
+            <p class="hint">Консоль: <code>SnakeWidget.scenarios.speedUp()</code></p>
+        </div>
+    </div>
+    <script type="module" src="js/widget.js"></script>
+</body>
+</html>

@@ -44,12 +44,19 @@
     <Content Include="js_game\js\Snake.js" />
     <Content Include="js_game\package.json" />
     <Content Include="js_game\selftest.js" />
+    <Content Include="js_widget\css\style.css" />
+    <Content Include="js_widget\index.html" />
+    <Content Include="js_widget\js\scenarios.js" />
+    <Content Include="js_widget\js\widget.js" />
     <Content Include="snake_settings.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bot\" />
     <Folder Include="js_game\" />
     <Folder Include="js_game\js\" />
+    <Folder Include="js_widget\" />
+    <Folder Include="js_widget\css\" />
+    <Folder Include="js_widget\js\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
